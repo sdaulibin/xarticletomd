@@ -115,24 +115,52 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * 下载为 MD 文件
+   * 下载为 MD 文件 - 使用文章标题作为文件名，保存到 Obsidian
    */
   function downloadAsFile() {
     if (!currentMarkdown || !currentTweetData) return;
 
-    const filename = `tweet_${currentTweetData.username}_${Date.now()}.md`;
+    // 生成文件名：优先使用文章标题，否则使用作者名
+    let filename;
+    if (currentTweetData.title && currentTweetData.title.trim()) {
+      // 清理标题中不能用于文件名的字符
+      filename = currentTweetData.title
+        .trim()
+        .replace(/[\\/:*?"<>|]/g, '') // 移除非法字符
+        .replace(/\s+/g, '_')          // 空格转下划线
+        .substring(0, 100);            // 限制长度
+    } else {
+      // 使用作者名和时间作为备选
+      filename = `${currentTweetData.displayName || currentTweetData.username}_${new Date().toISOString().slice(0, 10)}`;
+      filename = filename.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+    }
+    
+    filename = `${filename}.md`;
+    
+    // 使用 Chrome downloads API 保存到 Obsidian 文件夹
+    // 文件会保存到 Downloads/Obsidian/ 目录下
     const blob = new Blob([currentMarkdown], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    chrome.downloads.download({
+      url: url,
+      filename: `Obsidian/${filename}`,  // 保存到 Downloads/Obsidian/ 子目录
+      saveAs: false  // 不弹出保存对话框
+    }, (downloadId) => {
+      if (chrome.runtime.lastError) {
+        console.error('Download error:', chrome.runtime.lastError);
+        // 降级：使用普通下载
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      URL.revokeObjectURL(url);
+    });
 
-    downloadBtn.textContent = '✅ 已下载';
+    downloadBtn.textContent = '✅ 已保存';
     setTimeout(() => {
       downloadBtn.textContent = '💾 下载';
     }, 2000);

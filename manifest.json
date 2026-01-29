@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "将 X (Twitter) 上的推文转换为 Markdown 格式",
   "author": "binginx",
-  "permissions": ["activeTab", "clipboardWrite"],
+  "permissions": ["activeTab", "clipboardWrite", "downloads"],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
