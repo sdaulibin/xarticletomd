@@ -137,14 +137,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     filename = `${filename}.md`;
     
-    // 使用 Chrome downloads API 保存到 Obsidian 文件夹
-    // 文件会保存到 Downloads/Obsidian/ 目录下
+    // 使用 Chrome downloads API 保存到 Downloads 目录
     const blob = new Blob([currentMarkdown], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
     chrome.downloads.download({
       url: url,
-      filename: `Obsidian/${filename}`,  // 保存到 Downloads/Obsidian/ 子目录
+      filename: filename,  // 直接保存到 Downloads 目录
       saveAs: false  // 不弹出保存对话框
     }, (downloadId) => {
       if (chrome.runtime.lastError) {
